@@ -1,4 +1,4 @@
-# Flappy Bird em JavasCript
+# Flappy Bird feito em JavasCript
 Clone de Flappy Bird, desenvolvido somente com JavaScript belo e puro.
 
 ![screenshot 1](https://github.com/Doc-McCoy/flappy-bird-javascript/blob/master/print_1.png)
