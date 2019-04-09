@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Flappy Bird</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+    <div id="game-over">
+        FIM DE JOGO
+        <br>
+        pts: <span id="pontos-detail">0</span>
+        <br>
+        <button id="play-again">Jogar Novamente</button>
+    </div>
+
+    <canvas id="stage" width="288" height="512"></canvas>
+
+    <script>
+
+        // Acessar o canvas
+        var stage       = document.getElementById("stage");
+        var ctx         = stage.getContext("2d");
+
+        // Imagens
+        var bird        = new Image();
+        var bg          = new Image();
+        var fg          = new Image();
+        var pipeUpper   = new Image();
+        var pipeLower   = new Image();
+
+        bird.src        = "img/bird.png";
+        bg.src          = "img/bg.png";
+        fg.src          = "img/fg.png";
+        pipeUpper.src   = "img/pipeNorth.png";
+        pipeLower.src   = "img/pipeSouth.png";
+
+        // Audios
+        var fly     = new Audio();
+        var scor    = new Audio();
+
+        fly.src     = "som/fly.mp3";
+        scor.src    = "som/score.mp3";
+
+        // Variáveis do jogo
+        var constante;
+        var gap             = 85;       // Tamanho do espaço que ficará entre os 2 canos
+        var bX              = 10;       // Posição X do bird
+        var bY              = 150;      // Posição Y do bird
+        var gravity         = 2.0;      // Força da gravidade, que movimentará o player
+        var gravity_backup  = gravity;  // Backup do valor do gravity pois as vezes ele mudará
+        var score           = 0;        // Placar, óbvio
+        var game_over       = false;    // Status do jogo
+        var pipe            = [];       // Array de canos que irão surgir
+
+        // Ação de qualquer botão fará o bird subir
+        document.addEventListener("keydown", moveUp);
+        // Ação no botão de 'Jogar novamente'
+        document.getElementById("play-again").addEventListener("click", playAgain);
+
+
+        function moveUp() {
+            if (game_over) return false;
+            // Mover o bird para cima
+            gravity = -6.0;
+            // Tocar o som
+            fly.play();
+            // Voltar a gravidade para o normal
+            setTimeout(function() {
+                gravity = gravity_backup;
+            }, 80);
+        }
+
+
+        function gameOver() {
+            game_over = true;
+            document.getElementById("pontos-detail").innerText = score;
+            document.getElementById("game-over").style = "display : inline";
+            gravity = 0;
+        }
+
+
+        function playAgain() {
+            game_over   = false;
+            score       = 0;
+            gravity     = gravity_backup;
+            bY          = 150;
+            document.getElementById("pontos-detail").innerText = score;
+            document.getElementById("game-over").style = "display : none";
+            // Limpar o array de canos
+            pipe        = [];
+            // Inicializar o primeiro cano
+            pipe[0]     = {
+                x : stage.width, // Final da tela
+                y : 0,
+            }
+        }
+
+
+        function draw() {
+            // Desenhar fundo
+            ctx.drawImage(bg, 0, 0);
+
+            // Laço que irá manipular todos os canos na variável pipe
+            for (var i = 0; i < pipe.length; i++) {
+                // Essa constante é o valor do cano superior + o valor do vão (gap)
+                constante = pipeUpper.height + gap;
+                // Desenhar o primeiro cano superior
+                ctx.drawImage(pipeUpper, pipe[i].x, pipe[i].y);
+                // Desenhar o primeiro cano inferior
+                ctx.drawImage(pipeLower, pipe[i].x, pipe[i].y + constante);
+
+                if (!game_over) {
+                    // Mover o cano pra esquerda
+                    pipe[i].x --;
+                }
+
+                // Quando o cano atual estiver no meio da tela (135), criar outro
+                // A posição X é sempre o fim da tela
+                // Posição Y é aleatória
+                if (pipe[i].x == 135) {
+                    pipe.push({
+                        x : stage.width,
+                        y : Math.floor(Math.random() * pipeUpper.height) - pipeUpper.height,
+                    });
+                }
+
+                // Detectar colisão com o chão
+                if (bY + bird.height >= stage.height - fg.height) gameOver();
+
+                // Detectar colisão com os canos
+                if (bX + bird.width >= pipe[i].x && bX <= pipe[i].x + pipeUpper.width
+                    && (bY <= pipe[i].y + pipeUpper.height || bY + bird.height >= pipe[i].y + constante)
+                ) gameOver();
+
+                // Caso a posição X do cano atual seja a mesma do bird, incrementar o score
+                if (pipe[i].x == bX) {
+                    score ++;
+                    scor.play();
+                }
+            }
+
+            // Desenhar chão
+            ctx.drawImage(fg, 0, stage.height - fg.height);
+
+            // Bird
+            var bd = ctx.drawImage(bird, bX, bY);
+
+            // Aplicar gravidade ao bird
+            bY += gravity;
+
+            // Pontuacao
+            var width_canvas    = (stage.width / 2) -10;
+            ctx.fillStyle       = "#FFF";
+            ctx.strokeStyle     = "#000";
+            ctx.font            = "70px Flappy";
+            ctx.fillText(score, width_canvas, 80);
+            ctx.strokeText(score, width_canvas, 80);
+
+            // Função nativa do HTML que executa uma função inifintamente
+            requestAnimationFrame(draw);
+        }
+
+
+        window.onload = function () {
+            draw();
+            playAgain();
+        }
+
+    </script>
+</body>
+</html>
