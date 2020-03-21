@@ -1,3 +1,3 @@
 <?php
 
-require_once('/game.html');
+require_once('./game.html');
