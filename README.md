@@ -1,4 +1,4 @@
-# Flappy Bird feito em JS vanilla
+# Flappy Bird feito em JS puro
 
 Clone de Flappy Bird, desenvolvido somente com javascript belo e puro.
 
